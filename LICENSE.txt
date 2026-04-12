@@ -1,6 +1,8 @@
 What you can do without my consent (a)
 -> use the code to learn how cv2/ros2 works
 -> experiment using the code as a hobyist
+-> use any dependecy packages that ive used for compatability and that require open source distribution
+
 
 With my consent (b)
 -> use my code as base with extra modifactions from your part for your own use
@@ -10,4 +12,5 @@ With my consent (b)
 What you cant do (c)
 -> use the code as it is (without any modifications) for your own use
 -> include this code in your projects without proper acknowledgement in uses addressed in (a) and (b)
+-> Claim this as your own code in any circumstances.
 
