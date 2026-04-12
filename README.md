@@ -1,4 +1,4 @@
-# Autonomous Agricultural Rover (ROS 2 Jazzy)
+# Autonomous Soil Analysis Rover (ROS 2 Jazzy)
 
 An autonomous platform designed for precision agriculture, integrating computer vision, sensor fusion, and soil health monitoring.
 
