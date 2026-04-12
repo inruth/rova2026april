@@ -1,5 +1,17 @@
+# Compiled ROS 2 folders
 build/
 install/
 log/
-LICENSE.txt/
-LICENSE.txt
+
+# Python artifacts
+__pycache__/
+*.pyc
+
+# Neovim / Editor files
+*.swp
+*.swo
+.netrwhist
+.nvim/
+
+# System / OS files
+.DS_Store
