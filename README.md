@@ -1,6 +1,6 @@
 # Autonomous Soil Analysis Rover (ROS 2 Jazzy)
 
-An autonomous platform designed for precision agriculture, integrating computer vision, sensor fusion, and soil health monitoring.
+An autonomous platform designed for precision agriculture/remote exploration, integrating computer vision, sensor fusion, and soil health monitoring.
 
 ## System Architecture
 * **Compute:** Raspberry Pi 4B (ROS 2 Jazzy)
