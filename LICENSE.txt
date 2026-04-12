@@ -1,16 +1,32 @@
-What you can do without my consent (a)
--> use the code to learn how cv2/ros2 works
--> experiment using the code as a hobyist
--> use any dependecy packages that ive used for compatability and that require open source distribution
+Software License Agreement
 
+Copyright (c) 2026 [Your Name]. All rights reserved.
+1. Permitted Use (No Consent Required)
 
-With my consent (b)
--> use my code as base with extra modifactions from your part for your own use
--> present my code to others
--> copy part of the code or develop part of the code for your own use
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software for the following purposes:
 
-What you cant do (c)
--> use the code as it is (without any modifications) for your own use
--> include this code in your projects without proper acknowledgement in uses addressed in (a) and (b)
--> Claim this as your own code in any circumstances.
+    Educational Study: Utilizing the source code to understand the integration of OpenCV, ROS 2, and embedded hardware.
 
+    Hobbyist Experimentation: Executing and testing the code for personal, non-commercial, and non-distributable home projects.
+
+    Dependency Usage: Utilizing third-party open-source dependencies included within this repository, subject to their respective original licenses.
+
+2. Restricted Use (Prior Written Consent Required)
+
+The following actions require explicit, written authorization from the copyright holder:
+
+    Derivative Works: Utilizing this source code as a foundation or framework for modified projects.
+
+    Public Presentation: Presenting, demonstrating, or showcasing this software in professional, academic, or public forums.
+
+    Code Integration: Incorporating segments of this logic or architecture into other software distributions.
+
+3. Prohibited Actions
+
+Under no circumstances are the following permitted:
+
+    Unmodified Redistribution: Utilizing or distributing the software in its original state for any personal or commercial application.
+
+    Plagiarism & Attribution: Claiming ownership of this source code. All permitted uses under Sections 1 and 2 must include a visible and clear acknowledgement of the original author.
+
+    Commercial Exploitation: Using any part of this software for profit-generating activities or within proprietary corporate environments without a commercial license.

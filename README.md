@@ -22,3 +22,5 @@ An autonomous platform designed for precision agriculture, integrating computer 
 
 ## License
 Proprietary - All Rights Reserved.
+
+(This project is Proprietary. Personal use for learning and hobbyist experimentation is encouraged. However, any modification, redistribution, or public use requires prior written consent. See LICENSE.txt for full terms.)
