@@ -5,7 +5,7 @@ An autonomous platform designed for precision agriculture/remote exploration, in
 ## System Architecture
 * **Compute:** Raspberry Pi 4B (ROS 2 Jazzy)
 * **Low-Level Control:** Arduino Nano (via Serial Bridge)
-* **Navigation:** Extended Kalman Filter (EKF) fusing GPS and IMU data via `robot_localization`.
+* **Navigation:** Extended Kalman Filter (EKF) fusing Encoder and IMU data via `robot_localization`.
 * **Vision:** OpenCV-based line tracking for autonomous row navigation.
 * **Actuation:** BTS7960 High-current drivers for linear soil-probing actuator.
 
