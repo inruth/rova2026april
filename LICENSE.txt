@@ -1,6 +1,6 @@
 Software License Agreement
 
-Copyright (c) 2026 [Your Name]. All rights reserved.
+Copyright (c) 2026 Visruth K. All rights reserved.
 1. Permitted Use (No Consent Required)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software for the following purposes:
@@ -11,17 +11,13 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 
     Dependency Usage: Utilizing third-party open-source dependencies included within this repository, subject to their respective original licenses.
 
-2. Restricted Use (Prior Written Consent Required)
-
-The following actions require explicit, written authorization from the copyright holder:
-
     Derivative Works: Utilizing this source code as a foundation or framework for modified projects.
 
     Public Presentation: Presenting, demonstrating, or showcasing this software in professional, academic, or public forums.
 
     Code Integration: Incorporating segments of this logic or architecture into other software distributions.
 
-3. Prohibited Actions
+2. Prohibited Actions
 
 Under no circumstances are the following permitted:
 
@@ -30,3 +26,5 @@ Under no circumstances are the following permitted:
     Plagiarism & Attribution: Claiming ownership of this source code. All permitted uses under Sections 1 and 2 must include a visible and clear acknowledgement of the original author.
 
     Commercial Exploitation: Using any part of this software for profit-generating activities or within proprietary corporate environments without a commercial license.
+
+    Note: This repository vendors several open-source ROS 2 packages (e.g., robot_localization, vision_opencv) to ensure build stability on Debian Trixie. These packages retain their original Apache 2.0 / BSD / MIT licenses as noted in their respective directories.
