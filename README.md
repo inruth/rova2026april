@@ -23,4 +23,4 @@ An autonomous platform designed for precision agriculture/remote exploration, in
 ## License
 Proprietary - All Rights Reserved.
 
-(This project is Proprietary. Personal use for learning and hobbyist experimentation is encouraged. However, any modification, redistribution, or public use requires prior written consent. See LICENSE.txt for full terms.)
+(This project is Proprietary. Personal use for learning and hobbyist experimentation is encouraged. See LICENSE.txt for full terms.)
