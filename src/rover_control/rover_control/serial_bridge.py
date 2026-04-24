@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist, TransformStamped
 from nav_msgs.msg import Odometry
-from sensor_msgs.msg import Imu, Range  # <-- Added Range import
+from sensor_msgs.msg import Imu, Range
 import serial
 import math
 from tf2_ros import TransformBroadcaster
@@ -107,17 +107,16 @@ class RoverSerialBridge(Node):
                         try:
                             ax, ay, az, gx, gy, gz = map(float, parts)
                             
-                            # --- DEADBAND FILTER (GHOST DRIFT FIX) ---
-                            # If the gyro rotation is less than 0.05 rad/s, force it to 0.0
+                            # --- DEADBAND FILTER ---
                             if abs(gx) < 0.05: gx = 0.0
                             if abs(gy) < 0.05: gy = 0.0
                             if abs(gz) < 0.05: gz = 0.0
                             
                             self.publish_imu(ax, ay, az, gx, gy, gz)
                         except ValueError:
-                            pass # Silently drop corrupted string
+                            pass
 
-                # --- NEW: Parse Ultrasonic with Noise Filter ---
+                # --- Parse Ultrasonic with Noise Filter ---
                 elif line.startswith("U:"):
                     try:
                         dist_str = line[2:].strip()
@@ -128,12 +127,12 @@ class RoverSerialBridge(Node):
                         
                         # Hardware specs for HC-SR04
                         range_msg.radiation_type = Range.ULTRASOUND
-                        range_msg.field_of_view = 0.26  # ~15 degrees in radians
-                        range_msg.min_range = 0.02      # 2 cm minimum
-                        range_msg.max_range = 2.50      # 2.5 meters
+                        range_msg.field_of_view = 0.26
+                        range_msg.min_range = 0.02 
+                        range_msg.max_range = 2.50   
                         
                         if dist_str == "MAX":
-                            range_msg.range = float('inf') # Out of range indicator
+                            range_msg.range = float('inf')
                         else:
                             # Convert cm from Arduino to meters for ROS 2
                             raw_dist = float(dist_str) / 100.0 
@@ -168,7 +167,6 @@ class RoverSerialBridge(Node):
         imu_msg.angular_velocity.z = gz
         
         # --- EKF COVARIANCE FIX ---
-        # -1.0 on the first element means "we don't have orientation data, ignore it"
         imu_msg.orientation_covariance[0] = -1.0 
         
         # Give a small variance to angular velocity so the EKF trusts it
@@ -213,7 +211,6 @@ class RoverSerialBridge(Node):
 
         qz = math.sin(self.theta / 2.0)
         qw = math.cos(self.theta / 2.0)
-        # We construct the transform but intentionally DO NOT broadcast it
         # robot_localization will broadcast the corrected odom -> base_link TF
         t = TransformStamped()
         t.header.stamp = current_time.to_msg()
