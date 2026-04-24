@@ -8,13 +8,13 @@ const int RIGHT_BWD = 11;
 const int RIGHT_FWD = 12;
 
 // --- QUADRATURE ENCODER PINS ---
-const int ENC_FL_A = 2; // Supports Hardware Interrupt
+const int ENC_FL_A = 2;
 const int ENC_FL_B = 3; 
-const int ENC_FR_A = 4; // Fast-polled in loop
+const int ENC_FR_A = 4;
 const int ENC_FR_B = 5; 
-const int ENC_RL_A = 6; // Fast-polled in loop
+const int ENC_RL_A = 6;
 const int ENC_RL_B = 7; 
-const int ENC_RR_A = 8; // Fast-polled in loop
+const int ENC_RR_A = 8;
 const int ENC_RR_B = 9; 
 
 // --- ENCODER VARIABLES ---
