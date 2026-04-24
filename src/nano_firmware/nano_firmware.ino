@@ -7,21 +7,25 @@ const int LEFT_FWD = A1;
 const int RIGHT_BWD = 11;
 const int RIGHT_FWD = 12;
 
-// --- ENCODER PINS & VARIABLES ---
-const int ENC_FL_PIN = 2; // Supports Hardware Interrupt
-const int ENC_FR_PIN = 3; // Supports Hardware Interrupt
-const int ENC_RL_PIN = 4; // Fast-polled in loop
-const int ENC_RR_PIN = 5; // Fast-polled in loop
+// --- QUADRATURE ENCODER PINS ---
+const int ENC_FL_A = 2; // Supports Hardware Interrupt
+const int ENC_FL_B = 3; 
+const int ENC_FR_A = 4; // Fast-polled in loop
+const int ENC_FR_B = 5; 
+const int ENC_RL_A = 6; // Fast-polled in loop
+const int ENC_RL_B = 7; 
+const int ENC_RR_A = 8; // Fast-polled in loop
+const int ENC_RR_B = 9; 
 
+// --- ENCODER VARIABLES ---
 volatile long ticksFL = 0;
-volatile long ticksFR = 0;
+long ticksFR = 0;
 long ticksRL = 0;
 long ticksRR = 0;
 
-int lastStateRL = LOW;
-int lastStateRR = LOW;
-int leftDir = 1;
-int rightDir = 1;
+int lastStateFR_A = LOW;
+int lastStateRL_A = LOW;
+int lastStateRR_A = LOW;
 
 // --- ULTRASONIC PINS ---
 const int TRIG_PIN = A2;
@@ -37,7 +41,7 @@ const int MPU_ADDR = 0x68;
 unsigned long previousMillis = 0;
 const long interval = 50; // 50ms = 20Hz update rate
 
-// --- NEW: LIGHTWEIGHT DEADMAN SWITCH ---
+// --- LIGHTWEIGHT DEADMAN SWITCH ---
 unsigned long lastCmdTime = 0;
 bool isMoving = false;
 
@@ -49,26 +53,26 @@ void setup() {
   pinMode(LEFT_BWD, OUTPUT); pinMode(LEFT_FWD, OUTPUT);
   pinMode(RIGHT_BWD, OUTPUT); pinMode(RIGHT_FWD, OUTPUT);
 
-  // 2. Encoder Setup
-  pinMode(ENC_FL_PIN, INPUT_PULLUP);
-  pinMode(ENC_FR_PIN, INPUT_PULLUP);
-  pinMode(ENC_RL_PIN, INPUT_PULLUP);
-  pinMode(ENC_RR_PIN, INPUT_PULLUP);
+  // 2. Encoder Setup (All 8 pins as inputs with pullups)
+  pinMode(ENC_FL_A, INPUT_PULLUP); pinMode(ENC_FL_B, INPUT_PULLUP);
+  pinMode(ENC_FR_A, INPUT_PULLUP); pinMode(ENC_FR_B, INPUT_PULLUP);
+  pinMode(ENC_RL_A, INPUT_PULLUP); pinMode(ENC_RL_B, INPUT_PULLUP);
+  pinMode(ENC_RR_A, INPUT_PULLUP); pinMode(ENC_RR_B, INPUT_PULLUP);
 
-  // Attach hardware interrupts for front wheels
-  attachInterrupt(digitalPinToInterrupt(ENC_FL_PIN), countFL, RISING);
-  attachInterrupt(digitalPinToInterrupt(ENC_FR_PIN), countFR, RISING);
+  // Attach hardware interrupt for Front Left ONLY (Pin 2)
+  attachInterrupt(digitalPinToInterrupt(ENC_FL_A), countFL, RISING);
 
-  // Read initial states for rear wheels
-  lastStateRL = digitalRead(ENC_RL_PIN);
-  lastStateRR = digitalRead(ENC_RR_PIN);
+  // Read initial states for the polled wheels
+  lastStateFR_A = digitalRead(ENC_FR_A);
+  lastStateRL_A = digitalRead(ENC_RL_A);
+  lastStateRR_A = digitalRead(ENC_RR_A);
 
   // 3. Ultrasonic Setup
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
 
   // 4. IMU Setup
-  delay(200); // Give the MPU6050 time to stabilize power
+  delay(200); 
   Wire.begin();
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(0x6B); // Power management register
@@ -80,29 +84,46 @@ void loop() {
   recvWithEndMarker();
   parseData();
   
-  // --- NEW: PASSIVE FAILSAFE ---
-  // If moving, and 500ms has passed since the last command, stop.
+  // PASSIVE FAILSAFE
   if (isMoving && (millis() - lastCmdTime > 500)) {
     setMotors(0, 0);
     isMoving = false;
   }
 
-  pollRearEncoders(); // Catch rear wheel ticks instantly
+  pollEncoders();     // Catch D4, D6, D8 wheel ticks instantly
   publishData();      // Send Encoders, IMU, and Ultrasonic every 50ms
 }
 
-// --- INTERRUPTS & POLLING ---
-void countFL() { ticksFL += leftDir; }
-void countFR() { ticksFR += rightDir; }
+// --- INTERRUPTS & POLLING (QUADRATURE LOGIC) ---
 
-void pollRearEncoders() {
-  int stateRL = digitalRead(ENC_RL_PIN);
-  if (stateRL == HIGH && lastStateRL == LOW) { ticksRL += leftDir; }
-  lastStateRL = stateRL;
+// Hardware Interrupt for Front Left
+void countFL() { 
+  if (digitalRead(ENC_FL_B) == LOW) { ticksFL--; } 
+  else { ticksFL++; } 
+}
 
-  int stateRR = digitalRead(ENC_RR_PIN);
-  if (stateRR == HIGH && lastStateRR == LOW) { ticksRR += rightDir; }
-  lastStateRR = stateRR;
+// Fast polling for the other 3 wheels
+void pollEncoders() {
+  // Front Right
+  int stateFR_A = digitalRead(ENC_FR_A);
+  if (stateFR_A == HIGH && lastStateFR_A == LOW) { 
+    if (digitalRead(ENC_FR_B) == LOW) { ticksFR++; } else { ticksFR--; }
+  }
+  lastStateFR_A = stateFR_A;
+
+  // Rear Left
+  int stateRL_A = digitalRead(ENC_RL_A);
+  if (stateRL_A == HIGH && lastStateRL_A == LOW) { 
+    if (digitalRead(ENC_RL_B) == LOW) { ticksRL--; } else { ticksRL++; }
+  }
+  lastStateRL_A = stateRL_A;
+
+  // Rear Right
+  int stateRR_A = digitalRead(ENC_RR_A);
+  if (stateRR_A == HIGH && lastStateRR_A == LOW) { 
+    if (digitalRead(ENC_RR_B) == LOW) { ticksRR++; } else { ticksRR--; }
+  }
+  lastStateRR_A = stateRR_A;
 }
 
 // --- SERIAL COMMUNICATION ---
@@ -136,7 +157,6 @@ void parseData() {
           int rightSpeed = atoi(strTokIndx);
           setMotors(leftSpeed, rightSpeed);
           
-          // --- NEW: Reset failsafe timer on valid command ---
           lastCmdTime = millis();
           isMoving = true;
         }
@@ -150,8 +170,14 @@ void parseData() {
 void setMotors(int leftSpeed, int rightSpeed) {
   leftSpeed = constrain(leftSpeed, -255, 255);
   rightSpeed = constrain(rightSpeed, -255, 255);
-  leftDir = (leftSpeed >= 0) ? 1 : -1;
-  rightDir = (rightSpeed >= 0) ? 1 : -1;
+
+  int MIN_PWM = 130; 
+  
+  if (leftSpeed > 0 && leftSpeed < MIN_PWM) leftSpeed = MIN_PWM;
+  if (leftSpeed < 0 && leftSpeed > -MIN_PWM) leftSpeed = -MIN_PWM;
+  
+  if (rightSpeed > 0 && rightSpeed < MIN_PWM) rightSpeed = MIN_PWM;
+  if (rightSpeed < 0 && rightSpeed > -MIN_PWM) rightSpeed = -MIN_PWM;
 
   int absSpeed = (abs(leftSpeed) + abs(rightSpeed)) / 2;
   analogWrite(PWM_PIN, absSpeed);
@@ -181,7 +207,7 @@ void publishData() {
 
     // 2. PUBLISH IMU
     Wire.beginTransmission(MPU_ADDR);
-    Wire.write(0x3B); // Starting register for Accel Readings
+    Wire.write(0x3B); 
     Wire.endTransmission(false);
     Wire.requestFrom(MPU_ADDR, 14, true);
 
@@ -217,7 +243,6 @@ void publishData() {
     delayMicroseconds(10);
     digitalWrite(TRIG_PIN, LOW);
 
-    // 15000 microsecond timeout limits the block to ~2.5 meters.
     long duration = pulseIn(ECHO_PIN, HIGH, 15000);
 
     if (duration == 0) {
@@ -229,4 +254,3 @@ void publishData() {
     }
   }
 }
-

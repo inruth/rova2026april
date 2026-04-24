@@ -38,6 +38,9 @@ class RoverBehavior(Node):
         # --- NEW: Heartbeat tracker for the Deadman Switch ---
         self.last_vision_heartbeat = time.time()
 
+        self.last_teleop_time = 0.0
+        self.teleop_timeout = 5.0
+
         self.current_x = 0.0
         self.current_y = 0.0
         self.current_yaw = 0.0          
@@ -89,6 +92,7 @@ class RoverBehavior(Node):
         self.obstacle_distance = msg.range
 
     def teleop_callback(self, msg):
+        self.last_teleop_time = time.time()
         if self.current_state != self.STATE_MANUAL_OVERRIDE:
             self.get_logger().warn("MANUAL OVERRIDE ENGAGED! Autonomous routines terminated.")
             self.current_state = self.STATE_MANUAL_OVERRIDE
@@ -136,19 +140,27 @@ class RoverBehavior(Node):
                 yaw_drift = self.get_angle_difference(self.current_yaw, self.radar_center_yaw)
 
                 # --- BIDIRECTIONAL BOUNCE LOGIC (With shorter 0.8 rad sweep) ---
-                if self.radar_stage == 1 and yaw_drift > 0.8:
-                    self.get_logger().info("Left sweep maxed out. Bouncing Right...")
-                    self.radar_stage = 2
-                    self.radar_sweeps_completed += 1
-                elif self.radar_stage == 2 and yaw_drift < -0.8:
-                    self.get_logger().info("Right sweep maxed out. Bouncing Left...")
-                    self.radar_stage = 1
-                    self.radar_sweeps_completed += 1
-
-                # If we bounced back and forth twice and still missed, give up.
-                if self.radar_sweeps_completed >= 2:
-                    self.get_logger().error("RADAR FAILED. Tight arc cleared in both directions. Halting.")
-                    self.current_state = self.STATE_MANUAL_OVERRIDE 
+                # --- NEW: ANTI-U-TURN ASYMMETRICAL BOUNCE LOGIC ---
+                # Phase 1: Deep 97-degree sweep in the predicted direction
+                if self.radar_sweeps_completed == 0:
+                    if self.radar_stage == 1 and yaw_drift > 1.7:
+                        self.get_logger().info("Left primary sweep maxed out. Bouncing Right...")
+                        self.radar_stage = 2
+                        self.radar_sweeps_completed = 1
+                    elif self.radar_stage == 2 and yaw_drift < -1.7:
+                        self.get_logger().info("Right primary sweep maxed out. Bouncing Left...")
+                        self.radar_stage = 1
+                        self.radar_sweeps_completed = 1
+                
+                # Phase 2: Short 45-degree check on the opposite side
+                elif self.radar_sweeps_completed == 1:
+                    # We stop at 0.8 rad so the camera cannot see the tape we just left.
+                    if self.radar_stage == 1 and yaw_drift > 0.8:
+                        self.get_logger().error("RADAR FAILED. Short Left check cleared. Halting.")
+                        self.current_state = self.STATE_MANUAL_OVERRIDE
+                    elif self.radar_stage == 2 and yaw_drift < -0.8:
+                        self.get_logger().error("RADAR FAILED. Short Right check cleared. Halting.")
+                        self.current_state = self.STATE_MANUAL_OVERRIDE 
 
                 current_time = time.time()
                 if self.radar_pulse_on:
@@ -161,7 +173,7 @@ class RoverBehavior(Node):
                         self.last_radar_time = current_time
 
                 if self.radar_pulse_on:
-                    cmd.angular.z = 0.6 if self.radar_stage == 1 else -0.6
+                    cmd.angular.z = 1.2 if self.radar_stage == 1 else -1.2
                 else:
                     cmd.angular.z = 0.0
                     
@@ -176,8 +188,8 @@ class RoverBehavior(Node):
 
                 # Step 0: The Initial Hard Brake (150ms reverse pulse)
                 if self.micro_step == 0:
-                    if elapsed < 0.15:
-                        cmd.angular.z = 0.8 * self.brake_dir
+                    if elapsed < 0.30:
+                        cmd.angular.z = 1.2 * self.brake_dir
                     else:
                         self.micro_step = 1
                         self.micro_timer = time.time()
@@ -191,8 +203,8 @@ class RoverBehavior(Node):
 
                 # Step 2: Micro-Pulse Opposite (100ms)
                 elif self.micro_step == 2:
-                    if elapsed < 0.10:
-                        cmd.angular.z = 0.6 * self.brake_dir
+                    if elapsed < 0.25:
+                        cmd.angular.z = 1.0 * self.brake_dir
                     else:
                         self.micro_step = 3
                         self.micro_timer = time.time()
@@ -206,8 +218,8 @@ class RoverBehavior(Node):
 
                 # Step 4: Micro-Pulse Original Direction (100ms wiggle back)
                 elif self.micro_step == 4:
-                    if elapsed < 0.10:
-                        cmd.angular.z = 0.6 * (-self.brake_dir) # Reverse the brake direction!
+                    if elapsed < 0.25:
+                        cmd.angular.z = 1.0 * (-self.brake_dir) # Reverse the brake direction!
                     else:
                         self.micro_step = 5
                         self.micro_timer = time.time()
@@ -218,9 +230,7 @@ class RoverBehavior(Node):
                     if elapsed > 0.50:
                         self.get_logger().warn("Micro-Search failed. Falling back to Main Radar.")
                         self.current_state = self.STATE_IMU_RADAR
-                        self.radar_center_yaw = self.current_yaw # Re-center the sweep
-                        self.radar_sweeps_completed = 0
-
+                        
         elif self.current_state == self.STATE_GREEN_ALIGN:
             dx = self.current_x - self.align_start_x
             dy = self.current_y - self.align_start_y
@@ -254,6 +264,19 @@ class RoverBehavior(Node):
         elif self.current_state == self.STATE_MANUAL_OVERRIDE:
             cmd.linear.x = self.current_teleop_cmd.linear.x
             cmd.angular.z = self.current_teleop_cmd.angular.z
+
+            #actuator
+            cmd.linear.y = self.current_teleop_cmd.linear.y
+            cmd.linear.z = self.current_teleop_cmd.linear.z
+            cmd.angular.x = self.current_teleop_cmd.angular.x
+            cmd.angular.y = self.current_teleop_cmd.angular.y
+
+            # Auto-resume if no teleop commands received for 2 seconds
+            if (time.time() - self.last_teleop_time) > self.teleop_timeout:
+                self.get_logger().info("Teleop timeout. Handing control back to Autonomous System.")
+                self.current_state = self.STATE_FOLLOWING
+                self.current_teleop_cmd = Twist() # Reset to zero
+                self.last_vision_heartbeat = time.time()
 
         # --- MASTER SAFETY FIREWALL ---
         if self.obstacle_distance <= self.safe_stop_distance and cmd.linear.x > 0:

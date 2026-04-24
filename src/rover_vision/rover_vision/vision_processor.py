@@ -22,7 +22,7 @@ class VisionProcessor(Node):
         self.green_mask_pub = self.create_publisher(Image, '/vision/green_mask', 1)
         self.bridge = CvBridge()
 
-        self.base_speed = 0.40      
+        self.base_speed = 0.55      
         self.kp_steer = 0.005      
         
         self.blind_frames = 0       
@@ -180,10 +180,10 @@ class VisionProcessor(Node):
                 steer_cmd.angular.z = 0.0 
                 cv2.putText(debug_img, "BLUR - BRAKING...", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2)
             else:
-                status_msg.data = "BLIND"
+                status_msg.data = f"BLIND_{self.last_seen_side}"
                 steer_cmd.linear.x = 0.0
                 steer_cmd.angular.z = 0.0
-                cv2.putText(debug_img, "BLIND - WAITING FOR RADAR", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                cv2.putText(debug_img, f"BLIND - RADAR {self.last_seen_side}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
         self.steer_pub.publish(steer_cmd)
         self.status_pub.publish(status_msg)
