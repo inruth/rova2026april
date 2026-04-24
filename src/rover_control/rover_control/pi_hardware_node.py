@@ -42,7 +42,6 @@ class PiHardwareNode(Node):
             self.temp_sensor_found = False
 
         # --- ROS 2 PUBLISHERS & SUBSCRIBERS ---
-        # Listening to 'cmd_vel' as verified by your ros2 topic pub test
         self.cmd_vel_sub = self.create_subscription(Twist, 'cmd_vel', self.cmd_vel_callback, 10)
         self.temp_pub = self.create_publisher(Temperature, 'soil/temperature', 10)
         self.moisture_pub = self.create_publisher(Bool, 'soil/moisture_alert', 10)
@@ -55,8 +54,7 @@ class PiHardwareNode(Node):
         self.lpwm.off()
 
     def cmd_vel_callback(self, msg):
-        # PAST PROGRESS: Keep z for automation/scripts
-        # UPDATED: Added y support for easier teleop keyboard control (j/l keys)
+        
         z_cmd = msg.linear.z
         y_cmd = msg.linear.y 
         
@@ -115,8 +113,6 @@ class PiHardwareNode(Node):
 
         # Publish Moisture
         moisture_msg = Bool()
-        # gpiozero .value returns 1 for HIGH (dry), 0 for LOW (wet)
-        # Assuming alert should be True when wet
         moisture_msg.data = not bool(self.moisture.value) 
         self.moisture_pub.publish(moisture_msg)
 
