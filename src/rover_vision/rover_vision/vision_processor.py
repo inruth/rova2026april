@@ -29,7 +29,7 @@ class VisionProcessor(Node):
         self.recovery_frames = 0
         self.last_seen_side = "LEFT"
 
-        # --- NEW: Forward Stutter-Step Variables ---
+        # ---Forward Stutter-Step Variables ---
         self.track_pulse_on = False
         self.last_track_time = time.time()
         self.track_drive_dur = 0.15  # 150ms of forward gas
@@ -45,8 +45,6 @@ class VisionProcessor(Node):
             largest = max(contours, key=cv2.contourArea)
             x, y, w, h = cv2.boundingRect(largest)
             
-            # --- FIX: Increased area to 1500 and demanded minimum width of 30 ---
-            # This makes the Vision Node completely ignore the thin tile grout!
             if cv2.contourArea(largest) > 1500 and w > 30:
                 M = cv2.moments(largest)
                 if M["m00"] != 0:
@@ -81,7 +79,7 @@ class VisionProcessor(Node):
         status_msg = String()
         cv2.line(debug_img, (0, split_y), (roi_w, split_y), (255, 0, 0), 2)
 
-        # --- NEW: CAMERA WARMUP BLOCK ---
+        # ---CAMERA WARMUP BLOCK ---
         # Keep Mother Node pacified and satisfy the Deadman Switch while the lens opens
         if (time.time() - self.node_start_time) < self.warmup_dur:
             status_msg.data = "TRACKING" 
@@ -94,9 +92,8 @@ class VisionProcessor(Node):
             self.debug_pub.publish(self.bridge.cv2_to_imgmsg(debug_img, encoding="bgr8"))
             return # Exit the callback early so it doesn't process the black frames!
 
-        # --- V19 LOGIC: Settle Pause followed by Forward Stutter-Step ---
+        # --- Settle Pause followed by Forward Stutter-Step ---
         if top_cx is not None:
-            # --- NEW: Update Directional Memory ---
             # Saves "RIGHT" or "LEFT" based on the tape's X-coordinate
             self.last_seen_side = "RIGHT" if top_cx > (roi_w / 2) else "LEFT"
             
@@ -139,9 +136,9 @@ class VisionProcessor(Node):
                     cv2.putText(debug_img, "TRACKING - LOOK", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
                     
                 cv2.circle(debug_img, (top_cx, top_cy), 10, (0, 255, 0), -1)
-        #
+                
         elif bot_cx is not None:
-            # --- NEW: Update Directional Memory during Approach ---
+            # --- Update Directional Memory during Approach ---
             self.last_seen_side = "RIGHT" if bot_cx > (roi_w / 2) else "LEFT"
             
             self.blind_frames = 0
