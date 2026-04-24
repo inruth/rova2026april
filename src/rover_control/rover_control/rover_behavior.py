@@ -35,7 +35,7 @@ class RoverBehavior(Node):
         self.current_vision_status = "BLIND"
         self.current_teleop_cmd = Twist()
 
-        # --- NEW: Heartbeat tracker for the Deadman Switch ---
+        # ---  Heartbeat tracker for the Deadman Switch ---
         self.last_vision_heartbeat = time.time()
 
         self.last_teleop_time = 0.0
@@ -76,11 +76,11 @@ class RoverBehavior(Node):
 
     def steer_callback(self, msg):
         self.current_vision_cmd = msg
-        self.last_vision_heartbeat = time.time() # Reset heartbeat!
+        self.last_vision_heartbeat = time.time()
 
     def status_callback(self, msg):
         self.current_vision_status = msg.data
-        self.last_vision_heartbeat = time.time() # Reset heartbeat!
+        self.last_vision_heartbeat = time.time()
 
     def odom_callback(self, msg):
         self.current_x = msg.pose.pose.position.x
@@ -112,12 +112,12 @@ class RoverBehavior(Node):
         cmd = Twist()
 
         if self.current_state == self.STATE_FOLLOWING:
-            # Check if the word "BLIND" is anywhere in the status (e.g., "BLIND_LEFT")
+            # Check if the word "BLIND" is anywhere in the status
             if "BLIND" in self.current_vision_status:
                 self.get_logger().warn(f"Camera Blind! Priority Radar ({self.current_vision_status}).")
                 self.current_state = self.STATE_IMU_RADAR
                 self.radar_center_yaw = self.current_yaw
-                self.radar_sweeps_completed = 0  # Reset the fail counter
+                self.radar_sweeps_completed = 0
 
                 # --- PRIORITY SWEEP DIRECTION ---
                 if "RIGHT" in self.current_vision_status:
@@ -134,25 +134,23 @@ class RoverBehavior(Node):
                 self.current_state = self.STATE_MICRO_SEARCH
                 self.micro_step = 0
                 self.micro_timer = time.time()
-                # If sweeping Left (1), brake Right (-1.0).
                 self.brake_dir = -1.0 if self.radar_stage == 1 else 1.0 
             else:
                 yaw_drift = self.get_angle_difference(self.current_yaw, self.radar_center_yaw)
 
-                # --- BIDIRECTIONAL BOUNCE LOGIC (With shorter 0.8 rad sweep) ---
-                # --- NEW: ANTI-U-TURN ASYMMETRICAL BOUNCE LOGIC ---
-                # Phase 1: Deep 97-degree sweep in the predicted direction
+                # --- BIDIRECTIONAL BOUNCE LOGIC
+                # Phase 1:
                 if self.radar_sweeps_completed == 0:
-                    if self.radar_stage == 1 and yaw_drift > 1.7:
+                    if self.radar_stage == 1 and yaw_drift > 1.9:
                         self.get_logger().info("Left primary sweep maxed out. Bouncing Right...")
                         self.radar_stage = 2
                         self.radar_sweeps_completed = 1
-                    elif self.radar_stage == 2 and yaw_drift < -1.7:
+                    elif self.radar_stage == 2 and yaw_drift < -1.9:
                         self.get_logger().info("Right primary sweep maxed out. Bouncing Left...")
                         self.radar_stage = 1
                         self.radar_sweeps_completed = 1
                 
-                # Phase 2: Short 45-degree check on the opposite side
+                # Phase 2: 
                 elif self.radar_sweeps_completed == 1:
                     # We stop at 0.8 rad so the camera cannot see the tape we just left.
                     if self.radar_stage == 1 and yaw_drift > 0.8:
@@ -178,7 +176,6 @@ class RoverBehavior(Node):
                     cmd.angular.z = 0.0
                     
         elif self.current_state == self.STATE_MICRO_SEARCH:
-            # INSTANT ABORT: If the camera sees the tape at any point during this dance, we win!
             if self.current_vision_status == "TRACKING" and self.micro_step > 0:
                 self.get_logger().info("Micro-Search locked on! Handing off to Vision Node.")
                 self.current_state = self.STATE_FOLLOWING
@@ -282,10 +279,8 @@ class RoverBehavior(Node):
         if self.obstacle_distance <= self.safe_stop_distance and cmd.linear.x > 0:
             cmd.linear.x = 0.0
             self.get_logger().warn(f"COLLISION AVOIDANCE! Obstacle detected at {self.obstacle_distance:.2f}m")
-
-        # --- NEW: DEADMAN SWITCH ---
-        # If we haven't received a vision command in 0.5 seconds, assume the camera node crashed.
-        # Cut power immediately to prevent a zombie runaway rover.
+            
+        # DEADMAN BACKUP
         if (time.time() - self.last_vision_heartbeat) > 0.5 and self.current_state == self.STATE_FOLLOWING:
             cmd.linear.x = 0.0
             cmd.angular.z = 0.0
