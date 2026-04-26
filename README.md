@@ -15,9 +15,14 @@ An autonomous platform designed for precision agriculture/remote exploration, in
 * `nano_firmware`: C++ firmware for the Arduino hardware interface.
 
 ## Setup
+Done on ros2 trixie cli only
 1. Clone to `~/rover_ws/src`
-2. install base ros2 jazzy and build tools
-3. Run `colcon build --cmake-args -DBUILD_TESTING=OFF`
-4. fix missing package errors if any
-5. `source install/setup.bash`
-6. `ros2 launch rover_control rover_bringup.launch.py`
+2. install base ros2 jazzy and build tools: sudo apt install -y build-essential git wget curl python3-pip python3-venv locales
+3. update locales: sudo locale-gen en_US en_US.UTF-8
+sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
+use rospian repo
+5. Run `colcon build --cmake-args -DBUILD_TESTING=OFF`
+6. fix missing package errors if any
+7. `source install/setup.bash`
+8. `ros2 launch rover_control rover_bringup.launch.py`
