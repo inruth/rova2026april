@@ -14,4 +14,4 @@ __pycache__/
 .nvim/
 
 # System / OS files
-.DS_Store
+.DS_Store 
