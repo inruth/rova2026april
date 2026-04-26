@@ -16,11 +16,8 @@ An autonomous platform designed for precision agriculture/remote exploration, in
 
 ## Setup
 1. Clone to `~/rover_ws/src`
-2. Run `colcon build --cmake-args -DBUILD_TESTING=OFF`
-3. `source install/setup.bash`
-4. `ros2 launch rover_control rover_bringup.launch.py`
-
-## License
-Proprietary - All Rights Reserved.
-
-(This project is Proprietary. Personal use for learning and hobbyist experimentation is encouraged. See LICENSE.txt for full terms.)
+2. install base ros2 jazzy and build tools
+3. Run `colcon build --cmake-args -DBUILD_TESTING=OFF`
+4. fix missing package errors if any
+5. `source install/setup.bash`
+6. `ros2 launch rover_control rover_bringup.launch.py`
