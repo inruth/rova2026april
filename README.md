@@ -1,4 +1,9 @@
-# Autonomous Soil Analysis Rover (ROS 2 Jazzy)
+# This project is archived, no further updates will be provided 
+
+# Autonomous Soil Analysis Rover (ROS 2 Jazzy) ...( github rep link for paper)
+
+# Notice: The code may not work as intended if all hardware and build methods does not match, for slight variances modification in the code may be req
+# to get the same results.
 
 An autonomous platform designed for precision agriculture/remote exploration, integrating computer vision, sensor fusion, and soil health monitoring.
 
