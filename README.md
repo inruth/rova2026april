@@ -14,7 +14,7 @@ An autonomous platform designed for precision agriculture/remote exploration, in
 * **Actuation:** BTS7960 High-current drivers for linear soil-probing actuator.
 
 ## Core Packages
-# Based on ros2 jazzy build from source using python 3.10.20
+Based on ros2 jazzy build from source using python 3.10.20
 * `rover_control`: Hardware interface, Mother Node (behavior tree logic), and telemetry.
 * `rover_vision`: Image processing and spatial detection.
 * `nano_firmware`: C++ firmware for the Arduino hardware interface.
