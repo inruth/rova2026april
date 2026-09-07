@@ -20,7 +20,7 @@ Based on ros2 jazzy build from source using python 3.10.20
 * `nano_firmware`: C++ firmware for the Arduino hardware interface.
 
 ## Setup
-Done on ros2 trixie cli only
+Done on ros2 jazzy, trixie cli only
 1. Clone to `~/rover_ws/src`
 2. install base ros2 jazzy and build tools: install build-essential git wget curl python3-pip python3-venv locales
 3. update locales: sudo locale-gen en_US en_US.UTF-8
