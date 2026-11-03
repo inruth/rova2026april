@@ -1,5 +1,4 @@
-# This project is archived, no further updates will be provided 
-
+# This project is archived.
 Autonomous EKF+Vision Soil Analysis Rover (ROS 2 Jazzy) ...
 
 Notice: The code may not work as intended if all hardware and build methods does not match, for slight variances modification in the code may be required to get the same results.
